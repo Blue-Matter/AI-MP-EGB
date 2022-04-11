@@ -10,6 +10,7 @@
 
 library(openMSE)
 setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
+setwd("C:/GitHub/AI-MP-EGB")
 
 
 # A --- Load Operating Model derivied from Base EGB Assessment ----------------------------------------------
@@ -38,80 +39,48 @@ dat@Year <- obj$years # The years in data file
 
 # Aggregate annual catches ---
 
-dat@Cat <- matrix(rep(obj$input$data$agg_catch[,1],each=OM@nsim),nrow=OM@nsim)
-dat@CV_Cat <- matrix(rep(obj$input$data$agg_catch_sigma[,1],each=OM@nsim),nrow=OM@nsim) # this is the assumed CV reported to MPs when simulated data are supplied
+dat@Cat <- matrix(rep(obj$input$data$agg_catch[,1],each=Base@nsim),nrow=Base@nsim)
+dat@CV_Cat <- matrix(rep(obj$input$data$agg_catch_sigma[,1],each=Base@nsim),nrow=Base@nsim) # this is the assumed CV reported to MPs when simulated data are supplied
 
 # Abundance indices ---
 
-# Values
+ages<-2:9
+nai<-length(ages)
+ny<-length(obj$input$years)
+allind<-array(NA,c(nai*3,ny))
+selexV<-array(0,c(Base@nsim,nrow(allind),10))
 
-indices<-t(obj$input$data$agg_indices) # transpose to index x year
-
-BInd<-read.csv("./Data/EGB_2021/EGB_HADDOCK_BIOMASS INDEX_3.csv")
-BInd<-BInd[BInd$Year>1986,] # Trim to last 33 years
-keep<-match(BInd$Year,(OM@CurrentYr-((OM@nyears-1):0)))
-
-Bindices<-array(NA,dim(indices))
-Bindices[,keep]<-t(BInd[,c(3,2,4)])/1E6
-
-Sindices<-array(NA,c(dim(indices)[1]*3,dim(indices)[2]))
-
-selex<-list(c(0,0.5,1,1,1,1,0.7,0.5,0.3),c(0,0,0.5,1,1,1,1,0.7,0.5),c(0,0,0,0.5,1,1,1,1,0.7))
-selexV<-array(NA,c(OM@nsim,9,10))
 j<-0
-
-
-for(ss in 1:3){
-  for(i in 1:3){
+for(i in 1:3){
+  for(a in 1:nai){
+    age<-ages[a]
     j<-j+1
-    selexV[,j,]<-rep(c(0,selex[[ss]]),each=OM@nsim)
+    allind[j,]<-obj$input$data$index_paa[i,,age]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,age]
+    selexV[,j,age+1]<-1
   }
 }
 
-j<-0
-
-
-for(ss in 1:3){
-  for(i in 1:3){
-    j<-j+1
-    sel<-t(array(selex[[ss]],c(obj$input$data$n_ages, obj$input$data$n_years_model)))
-    Sindices[j,]<-apply(obj$input$data$index_paa[i,,]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,]*sel,1,sum)
-  }
-}
-
-allind<-rbind(indices,Bindices,Sindices)
-
-dat@AddInd <- array(rep(allind,each=OM@nsim),c(OM@nsim,dim(allind)))
+dat@AddInd <- array(rep(allind,each=Base@nsim),c(Base@nsim,dim(allind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
-dat@AddInd[,,1:(OM@nyears-10)]<-NA # trim old values
+dat@AddInd[,,1:(Base@nyears-8)]<-NA # trim old values
 
 
-# CVs
+# reported CVs for data object (not used in simulation)
 
-ind_CV <- t(cbind(obj$input$data$agg_index_sigma,obj$input$data$agg_index_sigma,obj$input$data$agg_index_sigma,obj$input$data$agg_index_sigma,obj$input$data$agg_index_sigma))
-dat@CV_AddInd <- array(rep(ind_CV,each=OM@nsim),c(OM@nsim,dim(allind))) # this is the assumed CV reported to MPs when simulated data are supplied
+dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(allind))) # this is the assumed CV reported to MPs when simulated data are supplied
 
 # Vulnerability at age
-dat@AddIndV <- abind(OM@Misc$WHAM$AddIndV[,3:5,],OM@Misc$WHAM$AddIndV[,3:5,],selexV,along=2) # the final three selectivities are those of the indices, first two are the fleet
+
+dat@AddIndV <- selexV
 
 # Type
-dat@AddIunits<-c(rep(0,3),rep(1,3),rep(1,9))  # 0 Numbers index (1 is biomass)
+dat@AddIunits<-rep(1,nrow(allind))  # 0 Numbers index (1 is biomass)
 dat@AddIndType<-rep(3,dim(allind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
 
-OM@cpars$Data <- dat # append data to operating model
-OM@cpars$AddIbeta <- matrix(1, nrow=OM@nsim, ncol=dim(OM@cpars$Data@AddInd)[2])
+Base@cpars$Data <- dat # append data to operating model
+Base@cpars$AddIbeta <- matrix(1, nrow=Base@nsim, ncol=dim(Base@cpars$Data@AddInd)[2])
 
-
-
-
-
-
-
-
-
-
-
-
+saveRDS(Base,"./Operating_Models/Base_dat.rda")
 
 
 # --- Copy Base as template for other OMs -----------------------------------------------------------------
@@ -152,6 +121,22 @@ saveRDS(Rec_High,"./Operating_Models/Rec_High.rda")
 HistSel<-Base@cpars$V[,,1]
 Sel_Yng@cpars$V[,,proyears]<-array(HistSel,dim(Sel_Yng@cpars$V[,,proyears]))
 saveRDS(Sel_Yng,"./Operating_Models/Sel_Yng.rda")
+
+# --- Quick test of OM
+
+OMtest<-SubCpars(Base,sims=1:8)
+test<-runMSE(OMtest,extended=T)
+par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
+for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
+
+
+Stat<-test@Hist@SampPars$Obs$AddInd_Stat
+ni<-24
+
+res<-array(NA,c(ni,3,2))
+for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,2:3],2,quantile,p=c(0.05,0.5,0.95))
+
+sapply(Stat,function(x)mean(x[,3]))
 
 
 # === End of Script ===============================================================================================================================
