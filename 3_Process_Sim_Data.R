@@ -3,62 +3,44 @@
 # === Designing an AI MP for EGB Haddock =========================================================================================================
 # ================================================================================================================================================
 
-
 library(openMSE)
-library(wham)
-
-# 2. Run Simulations
-
-Base<-readRDS("./Operating_Models/Base_dat.rda")
+library(abind)
 
 
-# --- Make exploratory MPs -------------------
+# 3. Process Simulation Data
 
-FMP<-function(x, Data, reps = 100, plot = FALSE, Flev=0.6, CV=0.1) {
+MSEfiles<-paste0("C:/temp/MSEs/Run_",rep(1:60,each=6),"_",rep(1:6,40),".rda")
+# MSEfiles<-list.files("C:/temp/MSEs",full.names=T)
+nMSE<-length(MSEfiles)
+MSE1<-readRDS(MSEfiles[1])
+nsim<-MSE1@nsim
+nreps<-nsim*nMSE
 
-  Rec <- new("Rec")
-  y <- max(Data@Year) - Data@LHYear + 1
-
-  nyears <- length(Data@Misc$FleetPars$Find[x, ])
-  q <- Data@Misc$FleetPars$qs[x]
-  qvar <- Data@Misc$FleetPars$qvar[x, y]
-  if (length(qvar) < 1)   qvar <- 1
-  qinc <- Data@Misc$FleetPars$qinc[x]
-  qcur <- qvar * q * (1 + qinc/100)^y
-  HistE <- Data@OM$FinF[x]
-  MSYE <- Flev/qcur
-  Rec@Effort <- MSYE/HistE * rlnorm(1,0,CV)
-
-  Rec
-}
-
-F_hi<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.6)
-F_med<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.4)
-F_low<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.2)
-F_hi_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.6, CV=0.3)
-F_med_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.4, CV=0.3)
-F_low_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.2, CV=0.3)
-
-class(F_hi)<-class(F_med)<-class(F_low)<-class(F_hi_v)<-class(F_med_v)<-class(F_low_v)<-"MP"
-simMPs <- c("F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v")
-# test2 <- runMSE(MPs=simMPs); plot(test2)
-
-
-obj<-readRDS("./Data/Base.rda") # WHAM assessment object
-
-for(i in 1:40){
-  for(MP in 1:length(simMPs)){
-
-    seed<-(i*100)+i*MP
-    set.seed(seed)
-    OM <- MSEtool:::WHAM2OM(obj, report=F, nsim=200, LowerTri = 1) # report = T produces a diagnostic showing WHAM vs OM matching of numbers at age
-    print(OM@cpars$Perr_y[1,1:10])
-    OM@seed<-seed
-    MSE<-runMSE(OM,MPs=simMPs[MP],extended=T)
-    saveRDS(MSE,paste0("./MSEs/Run_",i,"_",MP,".rda"))
-    print(paste("i =",i,"  MP =",MP))
+# Function to process data - chooses a year then provide previous five years of all index data age 2+
+procdat<-function(x,MSEfiles){
+  MSE<-readRDS(MSEfiles[x])
+  nsim<-MSE@nsim
+  Years<-sample(4:MSE@proyears,nsim,replace=T)
+  Years2<-MSE@nyears+Years
+  VBind<-cbind(1:nsim,rep(1,nsim),Years)
+  VB<-MSE@VB[VBind]
+  aall<-rep(2:9,3)
+  as<-rep(3:9)
+  keep<-aall%in%as
+ 
+  
+  getind<-function(j,MSE,Years2){
+    Ind<-MSE@PPD[[1]]@AddInd[j,keep,]
+    
+    yind<-Years2[j]-8:1 # the five previous years of observations
+    as.vector(t(Ind[,yind]))
   }
+  cbind(VB,t(sapply(1:nsim,getind,MSE=MSE,Years2=Years2)))
 }
 
-
+setup()
+out<-sfLapply(1:nMSE,procdat,MSEfiles=MSEfiles)
+simdat<-as.data.frame(abind(out,along=1))
+names(simdat)<-c("VB",paste0("IV",1:(ncol(simdat)-1)))
+saveRDS(simdat,"./Sim_Data/simdata4.rda")
 

@@ -46,19 +46,31 @@ simMPs <- c("F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v")
 
 obj<-readRDS("./Data/Base.rda") # WHAM assessment object
 
-for(i in 1:40){
-  for(MP in 1:length(simMPs)){
 
+ni<-60
+MPs<-1:length(simMPs)
+inds<-expand.grid(1:ni,MPs)
+
+
+parrun<-function(x,inds,obj,simMPs, Base){
+    i<-inds[x,1]
+    MP<-inds[x,2]
     seed<-(i*100)+i*MP
     set.seed(seed)
     OM <- MSEtool:::WHAM2OM(obj, report=F, nsim=200, LowerTri = 1) # report = T produces a diagnostic showing WHAM vs OM matching of numbers at age
+    OM@cpars$Data<-Base@cpars$Data
+    OM@cpars$AddIbeta <-Base@cpars$AddIbeta
+    
     print(OM@cpars$Perr_y[1,1:10])
     OM@seed<-seed
     MSE<-runMSE(OM,MPs=simMPs[MP],extended=T)
-    saveRDS(MSE,paste0("./MSEs/Run_",i,"_",MP,".rda"))
-    print(paste("i =",i,"  MP =",MP))
-  }
+    saveRDS(MSE,paste0("C:/temp/MSEs2/Run_",i,"_",MP,".rda"))
+    #print(paste("i =",i,"  MP =",MP))
 }
 
+setup()
+sfLibrary(wham)
+sfExport(list=list("FMP","F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v"))
+sfSapply(1:nrow(inds),parrun,inds=inds,obj=obj,simMPs=simMPs,Base=Base)
 
 

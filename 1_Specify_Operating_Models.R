@@ -48,7 +48,6 @@ ages<-2:9
 nai<-length(ages)
 ny<-length(obj$input$years)
 allind<-array(NA,c(nai*3,ny))
-selexV<-array(0,c(Base@nsim,nrow(allind),10))
 
 j<-0
 for(i in 1:3){
@@ -56,26 +55,42 @@ for(i in 1:3){
     age<-ages[a]
     j<-j+1
     allind[j,]<-obj$input$data$index_paa[i,,age]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,age]
-    selexV[,j,age+1]<-1
+    
   }
 }
 
-dat@AddInd <- array(rep(allind,each=Base@nsim),c(Base@nsim,dim(allind)))
+#Ilist<-list(2:4,5:6,8:9,10:12,13:14,15:16,18:20,21:22,23:24)
+#alist<-list(3:5,6:7,8:9,3:5,6:7,8:9,3:5,6:7,8:9)
+
+Ilist<-list(2:4,5:6,13:14,21:22,23:24)
+alist<-list(3:5,6:7,6:7,6:7,8:9)
+
+
+nis<-length(Ilist)
+newind<-array(NA,c(nis,dim(allind)[2]))
+selexV<-array(0,c(Base@nsim,nis,10))
+
+for(i in 1:nis){
+  selexV[,i,alist[[i]]+1]<-1
+  newind[i,]<-apply(allind[Ilist[[i]],],2,sum)
+} 
+
+dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
-dat@AddInd[,,1:(Base@nyears-8)]<-NA # trim old values
+dat@AddInd[,,1:(Base@nyears-15)]<-NA # trim old values
 
 
 # reported CVs for data object (not used in simulation)
 
-dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(allind))) # this is the assumed CV reported to MPs when simulated data are supplied
+dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(newind))) # this is the assumed CV reported to MPs when simulated data are supplied
 
 # Vulnerability at age
 
 dat@AddIndV <- selexV
 
 # Type
-dat@AddIunits<-rep(1,nrow(allind))  # 0 Numbers index (1 is biomass)
-dat@AddIndType<-rep(3,dim(allind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
+dat@AddIunits<-rep(1,nrow(newind))  # 0 Numbers index (1 is biomass)
+dat@AddIndType<-rep(3,dim(newind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
 
 Base@cpars$Data <- dat # append data to operating model
 Base@cpars$AddIbeta <- matrix(1, nrow=Base@nsim, ncol=dim(Base@cpars$Data@AddInd)[2])
@@ -124,14 +139,14 @@ saveRDS(Sel_Yng,"./Operating_Models/Sel_Yng.rda")
 
 # --- Quick test of OM
 
-OMtest<-SubCpars(Base,sims=1:8)
+OMtest<-SubCpars(Base,sims=1:12)
 test<-runMSE(OMtest,extended=T)
-par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
-for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
+par(mfrow=c(3,3),mai=c(0.2,0.2,0.1,0.1))
+for(i in 1:9)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
 
 
 Stat<-test@Hist@SampPars$Obs$AddInd_Stat
-ni<-24
+ni<-9
 
 res<-array(NA,c(ni,3,2))
 for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,2:3],2,quantile,p=c(0.05,0.5,0.95))
