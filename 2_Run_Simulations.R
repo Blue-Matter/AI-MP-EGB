@@ -8,7 +8,8 @@ library(openMSE)
 library(wham)
 
 # 2. Run Simulations
-
+setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
+setwd("C:/GitHub/AI-MP-EGB")
 Base<-readRDS("./Operating_Models/Base_dat.rda")
 
 
@@ -47,7 +48,7 @@ simMPs <- c("F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v")
 obj<-readRDS("./Data/Base.rda") # WHAM assessment object
 
 
-ni<-60
+ni<-180
 MPs<-1:length(simMPs)
 inds<-expand.grid(1:ni,MPs)
 
@@ -71,6 +72,8 @@ parrun<-function(x,inds,obj,simMPs, Base){
 setup()
 sfLibrary(wham)
 sfExport(list=list("FMP","F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v"))
-sfSapply(1:nrow(inds),parrun,inds=inds,obj=obj,simMPs=simMPs,Base=Base)
+
+iss<-(1:nrow(inds))[inds[,1]>60]
+sfSapply(iss,parrun,inds=inds,obj=obj,simMPs=simMPs,Base=Base)
 
 

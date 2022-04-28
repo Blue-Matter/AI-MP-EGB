@@ -5,11 +5,12 @@
 
 library(openMSE)
 library(abind)
-
+setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
+setwd("C:/GitHub/AI-MP-EGB")
 
 # 3. Process Simulation Data
 
-MSEfiles<-paste0("C:/temp/MSEs/Run_",rep(1:60,each=6),"_",rep(1:6,40),".rda")
+MSEfiles<-paste0("C:/temp/MSEs2/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
 # MSEfiles<-list.files("C:/temp/MSEs",full.names=T)
 nMSE<-length(MSEfiles)
 MSE1<-readRDS(MSEfiles[1])
@@ -40,7 +41,8 @@ procdat<-function(x,MSEfiles){
 
 setup()
 out<-sfLapply(1:nMSE,procdat,MSEfiles=MSEfiles)
+out<-sapply(1:nMSE,procdat,MSEfiles=MSEfiles)
 simdat<-as.data.frame(abind(out,along=1))
 names(simdat)<-c("VB",paste0("IV",1:(ncol(simdat)-1)))
-saveRDS(simdat,"./Sim_Data/simdata4.rda")
+saveRDS(simdat,"./Sim_Data/simdataL.rda")
 

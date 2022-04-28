@@ -59,11 +59,17 @@ for(i in 1:3){
   }
 }
 
+
+Ilist<-as.list(1:24)
+alist<-as.list(rep(2:9,3))
+
 #Ilist<-list(2:4,5:6,8:9,10:12,13:14,15:16,18:20,21:22,23:24)
 #alist<-list(3:5,6:7,8:9,3:5,6:7,8:9,3:5,6:7,8:9)
 
-Ilist<-list(2:4,5:6,13:14,21:22,23:24)
-alist<-list(3:5,6:7,6:7,6:7,8:9)
+#Ilist<-list(2:4,5:6,13:14,21:22,23:24)
+#alist<-list(3:5,6:7,6:7,6:7,8:9)
+
+
 
 
 nis<-length(Ilist)
@@ -72,7 +78,7 @@ selexV<-array(0,c(Base@nsim,nis,10))
 
 for(i in 1:nis){
   selexV[,i,alist[[i]]+1]<-1
-  newind[i,]<-apply(allind[Ilist[[i]],],2,sum)
+  newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
 } 
 
 dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
@@ -149,9 +155,9 @@ Stat<-test@Hist@SampPars$Obs$AddInd_Stat
 ni<-9
 
 res<-array(NA,c(ni,3,2))
-for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,2:3],2,quantile,p=c(0.05,0.5,0.95))
+for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,1:2],2,quantile,p=c(0.05,0.5,0.95))
 
-sapply(Stat,function(x)mean(x[,3]))
+sapply(Stat,function(x)mean(x[,2]))
 
 
 # === End of Script ===============================================================================================================================

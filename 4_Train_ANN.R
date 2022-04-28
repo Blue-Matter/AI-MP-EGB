@@ -108,8 +108,8 @@ build_model <- function() {
   
   output <- input %>%
     layer_dense_features(dense_features(spec)) %>%
-    layer_dense(units = 16, activation = "relu") %>%  # "linear", "relu"
-    layer_dense(units = 16, activation = "relu") %>%
+    layer_dense(units = 8, activation = "relu") %>%  # "linear", "relu"
+    layer_dense(units = 8, activation = "relu") %>%
     layer_dense(units = 1)
   
   AIEGB <- keras_model(input, output)
@@ -162,8 +162,8 @@ AIEGB <- build_model()
   
   
   plot(history)
-  saveRDS(history,'history_1_8_8.rda')
-  save_model_weights_hdf5(AIEGB, "AIEGB_wts.h5")
+  saveRDS(history,'history_1_12_12.rda')
+  save_model_weights_hdf5(AIEGB, "AIEGB_12_12_wts.h5")
 
 }else{
 
