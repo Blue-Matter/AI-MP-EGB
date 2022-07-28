@@ -46,3 +46,35 @@ simdat<-as.data.frame(abind(out,along=1))
 names(simdat)<-c("VB",paste0("IV",1:(ncol(simdat)-1)))
 saveRDS(simdat,"./Sim_Data/simdataL.rda")
 
+
+
+# Index statistics (files are on the desktop)
+
+MSEfiles<-paste0("C:/temp/MSEs/Run_",rep(1:10,each=6),"_",rep(1:2,10),".rda")
+
+getstats<-function(x,MSEfiles,sd=T){
+  MSE<-readRDS(MSEfiles[x])
+  temp<-MSE@Hist@SampPars$Obs$AddInd_Stat[[1]]
+  nsim<-dim(temp)[1]
+  nstat<-dim(temp)[2]
+  nind<-length(MSE@Hist@SampPars$Obs$AddInd_Stat)
+  dat<-array(unlist(MSE@Hist@SampPars$Obs$AddInd_Stat),c(nsim,nstat,nind))
+  if(sd)ind<-3
+  if(!sd)ind<-2
+  dat[,ind,]
+}
+
+setup()
+sdout<-sfLapply(1:length(MSEfiles),getstats,MSEfiles=MSEfiles)
+acout<-sfLapply(1:length(MSEfiles),getstats,MSEfiles=MSEfiles,sd=F)
+
+sddat<-as.data.frame(abind(sdout,along=1))
+acdat<-as.data.frame(abind(acout,along=1))
+
+saveRDS(sddat,"./Sim_Data/sddat.rda")
+saveRDS(acdat,"./Sim_Data/acdat.rda")
+
+
+
+
+
