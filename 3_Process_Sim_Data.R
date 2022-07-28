@@ -28,11 +28,11 @@ procdat<-function(x,MSEfiles){
   aall<-rep(2:9,3)
   as<-rep(3:9)
   keep<-aall%in%as
- 
-  
+
+
   getind<-function(j,MSE,Years2){
     Ind<-MSE@PPD[[1]]@AddInd[j,keep,]
-    
+
     yind<-Years2[j]-8:1 # the five previous years of observations
     as.vector(t(Ind[,yind]))
   }
@@ -50,7 +50,7 @@ saveRDS(simdat,"./Sim_Data/simdataL.rda")
 
 # Index statistics (files are on the desktop)
 
-MSEfiles<-paste0("C:/temp/MSEs/Run_",rep(1:10,each=6),"_",rep(1:2,10),".rda")
+MSEfiles<-paste0("C:/temp/MSEs2/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
 
 getstats<-function(x,MSEfiles,sd=T){
   MSE<-readRDS(MSEfiles[x])
@@ -59,8 +59,8 @@ getstats<-function(x,MSEfiles,sd=T){
   nstat<-dim(temp)[2]
   nind<-length(MSE@Hist@SampPars$Obs$AddInd_Stat)
   dat<-array(unlist(MSE@Hist@SampPars$Obs$AddInd_Stat),c(nsim,nstat,nind))
-  if(sd)ind<-3
-  if(!sd)ind<-2
+  if(sd)ind<-2
+  if(!sd)ind<-1
   dat[,ind,]
 }
 
