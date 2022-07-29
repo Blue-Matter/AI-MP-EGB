@@ -55,7 +55,7 @@ for(i in 1:3){
     age<-ages[a]
     j<-j+1
     allind[j,]<-obj$input$data$index_paa[i,,age]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,age]
-    
+
   }
 }
 
@@ -79,7 +79,7 @@ selexV<-array(0,c(Base@nsim,nis,10))
 for(i in 1:nis){
   selexV[,i,alist[[i]]+1]<-1
   newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
-} 
+}
 
 dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
@@ -145,11 +145,10 @@ saveRDS(Sel_Yng,"./Operating_Models/Sel_Yng.rda")
 
 # --- Quick test of OM
 
-OMtest<-SubCpars(Base,sims=1:48)
+OMtest<-SubCpars(Base,sims=1:96)
 test<-runMSE(OMtest,MPs="FMSYref",extended=T)
 par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
 for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
-
 
 Stat<-test@Hist@SampPars$Obs$AddInd_Stat
 ni<-24
@@ -157,11 +156,13 @@ ni<-24
 res<-array(NA,c(ni,3,2))
 for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,1:2],2,quantile,p=c(0.05,0.5,0.95))
 
-sapply(Stat,function(x)mean(x[,2]))
+temp12<-sapply(Stat,function(x)mean(x[,2]))
 
+# Test of reduced CV
+
+testH<-runMSE(OMtest,Hist=T,extended=T)
+for(i in 1:24)testH@SampPars$Obs$AddInd_Stat[[i]][,2]<-testH@SampPars$Obs$AddInd_Stat[[i]][,2]/2
+testP<-Project(testH,MPs="FMSYref",extended=T)
 
 # === End of Script ===============================================================================================================================
-
-devtools::install_github('blue-matter/MSEtool')
-
 
