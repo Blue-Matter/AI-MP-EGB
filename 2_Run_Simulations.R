@@ -52,20 +52,31 @@ ni<-180
 MPs<-1:length(simMPs)
 inds<-expand.grid(1:ni,MPs)
 
+if(error){ # if for some reason the whole set did not fully complete, this filters inds according to the files calculated
+  files<-list.files("C:/temp/MSEs3/")
+  nis<-sapply(files,function(x)strsplit(x,split="_")[[1]][2])
+  MPss<-sapply(files,function(x)substr(strsplit(x,split="_")[[1]][3],1,1))
+  fcode<-paste(nis,MPss,sep="_")
+  icode<-paste(as.character(inds[,1]),as.character(inds[,2]),sep="_")
+  keep<-!(icode%in%fcode)
+  inds<-inds[keep,]
+}
 
 parrun<-function(x,inds,obj,simMPs, Base){
     i<-inds[x,1]
     MP<-inds[x,2]
     seed<-(i*100)+i*MP
     set.seed(seed)
-    OM <- MSEtool:::WHAM2OM(obj, report=F, nsim=200, LowerTri = 1) # report = T produces a diagnostic showing WHAM vs OM matching of numbers at age
+    OM <- MSEtool:::WHAM2OM(obj, report=F, nsim=200, LowerTri = 1,interval=1) # report = T produces a diagnostic showing WHAM vs OM matching of numbers at age
     OM@cpars$Data<-Base@cpars$Data
     OM@cpars$AddIbeta <-Base@cpars$AddIbeta
-    
+
     print(OM@cpars$Perr_y[1,1:10])
     OM@seed<-seed
-    MSE<-runMSE(OM,MPs=simMPs[MP],extended=T)
-    saveRDS(MSE,paste0("C:/temp/MSEs2/Run_",i,"_",MP,".rda"))
+    Hist<-runMSE(OM,Hist=T,extended=T)
+    #for(jj in 1:24)Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]<-Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]/2 # test of info in reduced CV
+    MSE<-Project(Hist,MPs=simMPs[MP],extended=T)
+    saveRDS(MSE,paste0("C:/temp/MSEs3/Run_",i,"_",MP,".rda"))
     #print(paste("i =",i,"  MP =",MP))
 }
 
@@ -73,7 +84,7 @@ setup()
 sfLibrary(wham)
 sfExport(list=list("FMP","F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v"))
 
-iss<-(1:nrow(inds))[inds[,1]>60]
+iss<-(1:nrow(inds))#[inds[,1]>60]
 sfSapply(iss,parrun,inds=inds,obj=obj,simMPs=simMPs,Base=Base)
 
 
