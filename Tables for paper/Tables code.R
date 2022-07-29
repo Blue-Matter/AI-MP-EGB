@@ -5,6 +5,7 @@ setwd("C:/GitHub/AI-MP-EGB")
 # Table 1. Index statistics
 
 sddat<-readRDS("./Sim_Data/sddat.rda")
+apply(sddat,2,mean)
 
 
 # Table 2.  performance of alternative neural network designs

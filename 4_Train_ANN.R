@@ -56,19 +56,26 @@ setwd("C:/GitHub/AI-MP-EGB")
 
 # --- Load and format data -------------------------------------
 
-TD<-readRDS("C:/temp/Sim_Data/simdataL.rda");
+TD<-readRDS("C:/temp/Sim_Data/simdataL3.rda")
 keep<-apply(TD,1,function(x)!is.na(sum(x)))&apply(TD,1,function(x)!any(x==-Inf))
+sum(keep)/length(keep)
 TD<-TD[keep,]
+high<-array(rep(apply(TD,2,quantile,p=0.99),each=nrow(TD)),dim(TD))
+keep2<-apply(TD<high,1,sum)==ncol(TD)
+sum(keep2)/length(keep2)
+TD<-TD[keep2,]
 
 hist(TD[,1])
-TD<-TD[TD[,1]<30000,]
+TD<-TD[TD[,1]<40000,]
 hist(TD[,1])
 TD<-TD[TD[,1]>100,]
-
-TD<-log(TD)
-
+#TD<-log(TD)
 hist(TD[,1])
-TD<-TD[1:100000,]
+#TD<-TD[1:50000,]
+TD[,1]<-TD[,1]/1000
+
+# log everything
+TD<-log(TD)
 
 nr<-nrow(TD)
 nc<-ncol(TD)
@@ -110,11 +117,18 @@ build_model <- function(firsty=16,secondy=8) {
   
   input <- layer_input_from_dataset(train_df %>% dplyr::select(-label))
   
-  output <- input %>%
-    layer_dense_features(dense_features(spec)) %>%
-    layer_dense(units = firsty, activation = "relu") %>%  # "linear", "relu"
-    layer_dense(units = secondy, activation = "relu") %>%
-    layer_dense(units = 1)
+  if(secondy>1){
+    output <- input %>%
+      layer_dense_features(dense_features(spec)) %>%
+      layer_dense(units = firsty, activation = "relu") %>%  # "linear", "selu", "sigmoid"
+      layer_dense(units = secondy, activation = "relu") %>%
+      layer_dense(units = 1)
+  }else{
+    output <- input %>%
+      layer_dense_features(dense_features(spec)) %>%
+      layer_dense(units = firsty, activation = "relu") %>%  # "linear", "selu", "sigmoid"
+      layer_dense(units = 1)
+  }
   
   AIEGB <- keras_model(input, output)
   
@@ -130,49 +144,44 @@ build_model <- function(firsty=16,secondy=8) {
 
 # --- Loop over layering options -----------------------
 
-layering0<-expand.grid(c(4,8,12,16,20),c(1,2,4,8,12,16))
+layering0<-expand.grid(c(10,20),c(0,6,12))
 layering<-layering0[layering0[,2]<=layering0[,1],]
 nl<-nrow(layering)
-
+mse<-cory<-rep(NA,nl)
 # Train models
+logy<-T
 if(dotrain){
 for(ll in 1:nl){
   
   firsty<-layering[ll,1]
   secondy<-layering[ll,2]
-  AIEGB <- build_model(firsty,secondy)
+  if(secondy==0)AIEGB <- build_model1(firsty,secondy)
+  if(secondy>1)AIEGB <- build_model2(firsty,secondy)
   
   history <- AIEGB %>% fit(
     x = train_df %>% dplyr::select(-label),
     y = train_df$label,
-    epochs = 50,
+    epochs = 30,
     validation_split = 0.2,
     verbose = 2
   )
   
-  saveRDS(history,paste0("./Fits/history_",firsty,"_",secondy,".rda"))
-  save_model_weights_hdf5(AIEGB, paste0("./Fits/AIEGB_",firsty,"_",secondy,"_wts.h5"))
+  test_predictions <- AIEGB %>% predict(test_df %>% dplyr::select(-label))
+  x<-test_df$label
+  y<-test_predictions[ , 1]
+  if(logy){
+    x<-exp(test_df$label)
+    y<-exp(test_predictions[ , 1])
+  }
+  plot(x,y,xlab="VB obs",ylab="VB Pred"); lines(c(0,1E10),c(0,1E10),col='#ff000050',lwd=2)
+  cory[ll]<-cor(x,y)^2
+  mse[ll]<-(1/length(x))*sum((x-y)^2)
+  print(paste("1st =",firsty,"  2nd =",secondy,"   cor =",cory[ll],"   mse =",mse[ll]))
+  
+  saveRDS(history,paste0("./Fits/history_",firsty,"_",secondy,"_fds.rda"))
+  save_model_weights_hdf5(AIEGB, paste0("./Fits/AIEGB_",firsty,"_",secondy,"_wts_fds.h5"))
   print(paste(ll,"of",nl, "completed"))
 }
 }
 
-#}else{
-
- # print("Using saved trained model weights")
-#  AIE %>% load_model_weights_hdf5(filepath = "AIEGB_wts.h5")
-#  test_predictions <- AIE %>% predict(test_df %>% dplyr::select(-label))
-#  plot(exp(test_df$label),exp(test_predictions[ , 1]),xlab="VB obs",ylab="VB Pred"); lines(c(0,1E10),c(0,1E10),col='#ff000050',lwd=2)
-#  test_predictions <- AIEGB %>% predict(test_df %>% dplyr::select(-label))
-#  x<-exp(test_df$label)
-#  y<-exp(test_predictions[ , 1])
-#  par(mfrow=c(1,2),mai=c(0.55,0.55,0.01,0.01))
-#  plot(x,y,ylim=c(0,quantile(y,0.99)),xlab="VB obs",ylab="VB Pred"); lines(c(0,1E10),c(0,1E10),col='#ff000050',lwd=2)
-#  legend('bottomright',legend=round(cor(x,y)^2,3),text.col='red',bty="n")
-#  x<-log(x)
-#  y<-log(y)
-#  plot(x,y,xlab="log VB obs",ylab="log VB Pred"); lines(c(0,1E10),c(0,1E10),col='#ff000050',lwd=2)
-  
-#  plot(history)
-  
- # }
 
