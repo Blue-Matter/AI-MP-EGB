@@ -2,6 +2,11 @@
 setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
 setwd("C:/GitHub/AI-MP-EGB")
 
+# Table 1. Index statistics
+
+sddat<-readRDS("./Sim_Data/sddat.rda")
+
+
 # Table 2.  performance of alternative neural network designs
 
 dotrain=F
