@@ -83,7 +83,7 @@ for(i in 1:nis){
 
 dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
-dat@AddInd[,,1:(Base@nyears-15)]<-NA # trim old values
+dat@AddInd[,,1:(Base@nyears-10)]<-NA # trim old values
 
 
 # reported CVs for data object (not used in simulation)
@@ -145,14 +145,14 @@ saveRDS(Sel_Yng,"./Operating_Models/Sel_Yng.rda")
 
 # --- Quick test of OM
 
-OMtest<-SubCpars(Base,sims=1:12)
-test<-runMSE(OMtest,extended=T)
-par(mfrow=c(3,3),mai=c(0.2,0.2,0.1,0.1))
-for(i in 1:9)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
+OMtest<-SubCpars(Base,sims=1:48)
+test<-runMSE(OMtest,MPs="FMSYref",extended=T)
+par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
+for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
 
 
 Stat<-test@Hist@SampPars$Obs$AddInd_Stat
-ni<-9
+ni<-24
 
 res<-array(NA,c(ni,3,2))
 for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,1:2],2,quantile,p=c(0.05,0.5,0.95))
@@ -162,5 +162,6 @@ sapply(Stat,function(x)mean(x[,2]))
 
 # === End of Script ===============================================================================================================================
 
+devtools::install_github('blue-matter/MSEtool')
 
 

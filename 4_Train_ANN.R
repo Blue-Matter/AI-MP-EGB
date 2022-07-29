@@ -43,7 +43,7 @@ library(tfdatasets)
 library(ggplot2)
 library(progress)
 
-setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
+#setwd("C:/Users/tcarruth/Documents/GitHub/AI-MP-EGB")
 setwd("C:/GitHub/AI-MP-EGB")
 
 # https://tensorflow.rstudio.com/tutorials/beginners/basic-ml/tutorial_basic_regression/
@@ -61,7 +61,7 @@ keep<-apply(TD,1,function(x)!is.na(sum(x)))&apply(TD,1,function(x)!any(x==-Inf))
 TD<-TD[keep,]
 
 hist(TD[,1])
-TD<-TD[TD[,1]<quantile(TD[,1],0.95),]
+TD<-TD[TD[,1]<30000,]
 hist(TD[,1])
 TD<-TD[TD[,1]>100,]
 
@@ -135,7 +135,7 @@ layering<-layering0[layering0[,2]<=layering0[,1],]
 nl<-nrow(layering)
 
 # Train models
-
+if(dotrain){
 for(ll in 1:nl){
   
   firsty<-layering[ll,1]
@@ -154,7 +154,8 @@ for(ll in 1:nl){
   save_model_weights_hdf5(AIEGB, paste0("./Fits/AIEGB_",firsty,"_",secondy,"_wts.h5"))
   print(paste(ll,"of",nl, "completed"))
 }
-  
+}
+
 #}else{
 
  # print("Using saved trained model weights")
