@@ -47,7 +47,7 @@ dat@CV_Cat <- matrix(rep(obj$input$data$agg_catch_sigma[,1],each=Base@nsim),nrow
 ages<-2:9
 nai<-length(ages)
 ny<-length(obj$input$years)
-allind<-array(NA,c(nai*3,ny))
+allind<-array(0,c(nai*3+3,ny))
 
 j<-0
 for(i in 1:3){
@@ -59,6 +59,13 @@ for(i in 1:3){
   }
 }
 
+for(i in 1:3){
+  j<-j+1
+  for(a in 1:nai){
+    age<-ages[a]
+    allind[j,]<-allind[j,]+obj$input$data$index_paa[i,,age]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,age] # add these up into the aggregate index
+  }
+}
 
 Ilist<-as.list(1:24)
 alist<-as.list(rep(2:9,3))
@@ -69,34 +76,32 @@ alist<-as.list(rep(2:9,3))
 #Ilist<-list(2:4,5:6,13:14,21:22,23:24)
 #alist<-list(3:5,6:7,6:7,6:7,8:9)
 
-
-
-
 nis<-length(Ilist)
-newind<-array(NA,c(nis,dim(allind)[2]))
-selexV<-array(0,c(Base@nsim,nis,10))
+#newind<-array(NA,c(nis,dim(allind)[2]))
+selexV<-array(0,c(Base@nsim,nis+3,10))
 
 for(i in 1:nis){
   selexV[,i,alist[[i]]+1]<-1
-  newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
+  #newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
 }
 
-dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
+for(i in (nis+(1:3)))selexV[,i,4:10]<-1
+
+dat@AddInd <- array(rep(allind,each=Base@nsim),c(Base@nsim,dim(allind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
 dat@AddInd[,,1:(Base@nyears-10)]<-NA # trim old values
 
-
 # reported CVs for data object (not used in simulation)
 
-dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(newind))) # this is the assumed CV reported to MPs when simulated data are supplied
+dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(allind))) # this is the assumed CV reported to MPs when simulated data are supplied
 
 # Vulnerability at age
 
 dat@AddIndV <- selexV
 
 # Type
-dat@AddIunits<-rep(1,nrow(newind))  # 0 Numbers index (1 is biomass)
-dat@AddIndType<-rep(3,dim(newind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
+dat@AddIunits<-rep(1,nrow(allind))  # 0 Numbers index (1 is biomass)
+dat@AddIndType<-rep(3,dim(allind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
 
 Base@cpars$Data <- dat # append data to operating model
 Base@cpars$AddIbeta <- matrix(1, nrow=Base@nsim, ncol=dim(Base@cpars$Data@AddInd)[2])
