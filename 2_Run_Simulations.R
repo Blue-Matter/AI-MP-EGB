@@ -53,7 +53,7 @@ MPs<-1:length(simMPs)
 inds<-expand.grid(1:ni,MPs)
 
 if(error){ # if for some reason the whole set did not fully complete, this filters inds according to the files calculated
-  files<-list.files("C:/temp/MSEs3/")
+  files<-list.files("C:/temp/MSEs4/")
   nis<-sapply(files,function(x)strsplit(x,split="_")[[1]][2])
   MPss<-sapply(files,function(x)substr(strsplit(x,split="_")[[1]][3],1,1))
   fcode<-paste(nis,MPss,sep="_")
@@ -74,9 +74,9 @@ parrun<-function(x,inds,obj,simMPs, Base){
     print(OM@cpars$Perr_y[1,1:10])
     OM@seed<-seed
     Hist<-runMSE(OM,Hist=T,extended=T)
-    #for(jj in 1:24)Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]<-Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]/2 # test of info in reduced CV
+    #for(jj in 1:27)Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]<-Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]/2 # test of info in reduced CV
     MSE<-Project(Hist,MPs=simMPs[MP],extended=T)
-    saveRDS(MSE,paste0("C:/temp/MSEs3/Run_",i,"_",MP,".rda"))
+    saveRDS(MSE,paste0("C:/temp/MSEs4/Run_",i,"_",MP,".rda"))
     #print(paste("i =",i,"  MP =",MP))
 }
 

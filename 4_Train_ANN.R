@@ -56,7 +56,7 @@ setwd("C:/GitHub/AI-MP-EGB")
 
 # --- Load and format data -------------------------------------
 
-TD<-readRDS("C:/temp/Sim_Data/simdataL3.rda")
+TD<-readRDS("C:/temp/Sim_Data/simdataL4.rda")
 keep<-apply(TD,1,function(x)!is.na(sum(x)))&apply(TD,1,function(x)!any(x==-Inf))
 sum(keep)/length(keep)
 TD<-TD[keep,]
