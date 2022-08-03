@@ -60,22 +60,20 @@ TD<-readRDS("C:/temp/Sim_Data/simdataL4.rda")
 keep<-apply(TD,1,function(x)!is.na(sum(x)))&apply(TD,1,function(x)!any(x==-Inf))
 sum(keep)/length(keep)
 TD<-TD[keep,]
-high<-array(rep(apply(TD,2,quantile,p=0.99),each=nrow(TD)),dim(TD))
+high<-array(rep(apply(TD,2,quantile,p=0.995),each=nrow(TD)),dim(TD))
 keep2<-apply(TD<high,1,sum)==ncol(TD)
 sum(keep2)/length(keep2)
 TD<-TD[keep2,]
 
-hist(TD[,1])
-TD<-TD[TD[,1]<40000,]
-hist(TD[,1])
-TD<-TD[TD[,1]>100,]
-#TD<-log(TD)
-hist(TD[,1])
-#TD<-TD[1:50000,]
+keep3<-TD[,1]<40000 & TD[,1]>100
+sum(keep3)/length(keep3)
+TD<-TD[keep3,]
 TD[,1]<-TD[,1]/1000
+hist(TD[,1])
 
-# log everything
+# Log independent and dependent variables
 TD<-log(TD)
+hist(TD[,1])
 
 nr<-nrow(TD)
 nc<-ncol(TD)
@@ -144,7 +142,7 @@ build_model <- function(firsty=16,secondy=8) {
 
 # --- Loop over layering options -----------------------
 
-layering0<-expand.grid(c(10,20),c(0,6,12))
+layering0<-expand.grid(c(10,20,30),c(0,6,12))
 layering<-layering0[layering0[,2]<=layering0[,1],]
 nl<-nrow(layering)
 mse<-cory<-rep(NA,nl)
@@ -155,8 +153,8 @@ for(ll in 1:nl){
   
   firsty<-layering[ll,1]
   secondy<-layering[ll,2]
-  if(secondy==0)AIEGB <- build_model1(firsty,secondy)
-  if(secondy>1)AIEGB <- build_model2(firsty,secondy)
+  AIEGB <- build_model(firsty,secondy)
+  
   
   history <- AIEGB %>% fit(
     x = train_df %>% dplyr::select(-label),
