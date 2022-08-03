@@ -85,7 +85,7 @@ for(i in 1:nis){
   #newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
 }
 
-for(i in (nis+(1:3)))selexV[,i,4:10]<-1
+for(i in (nis+(1:3)))selexV[,i,3:10]<-1
 
 dat@AddInd <- array(rep(allind,each=Base@nsim),c(Base@nsim,dim(allind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
