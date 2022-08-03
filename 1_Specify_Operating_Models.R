@@ -156,7 +156,7 @@ par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
 for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
 
 Stat<-test@Hist@SampPars$Obs$AddInd_Stat
-ni<-24
+ni<-length(test@Hist@SampPars$Obs$AddInd_Stat)
 
 res<-array(NA,c(ni,3,2))
 for(ii in 1:ni)  res[ii,,]<-apply(Stat[[ii]][,1:2],2,quantile,p=c(0.05,0.5,0.95))
