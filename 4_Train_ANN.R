@@ -115,10 +115,11 @@ source("./Source/build_model.r")
 
 # --- Loop over layering options -----------------------
 
-#layering0<-expand.grid(c(10,20,30),c(0,6,12))
-#layering0<-expand.grid(c(4,6,8),c(2,4,6))
+# layering0<-expand.grid(c(10,20,30),c(0,6,12))
+# layering0<-expand.grid(c(4,6,8),c(2,4,6))
+
 layering0 <-expand.grid(c(10,12),c(2,4));   epochs=30;  code=""
-layering0 <-cbind(c(8,8,10,10),c(4,6,0,2)); epochs=250; code="250"
+layering0 <-cbind(c(12,20,8,10,10,12),c(4,0,2,6,4,2)); epochs=250; code="_250"
 
 layering<-layering0[layering0[,2]<=layering0[,1],]
 nl<-nrow(layering)
@@ -128,7 +129,7 @@ mse<-cory<-rep(NA,nl)
 # Train models
 logy<-T
 if(dotrain){
-  for(ll in 1:nl){
+  for(ll in 2:nl){
     
     firsty<-layering[ll,1]
     secondy<-layering[ll,2]
@@ -154,8 +155,8 @@ if(dotrain){
     mse[ll]<-(1/length(x))*sum((x-y)^2)
     print(paste("1st =",firsty,"  2nd =",secondy,"   cor =",cory[ll],"   mse =",mse[ll]))
     
-    saveRDS(history,paste0("./Fits/history_",firsty,"_",secondy,"_fds_",code,".rda"))
-    save_model_weights_hdf5(AIEGB, paste0("./Fits/AIEGB_",firsty,"_",secondy,"_wts_fds_",code,".h5"))
+    saveRDS(history,paste0("./Fits/history_",firsty,"_",secondy,"_fds",code,".rda"))
+    save_model_weights_hdf5(AIEGB, paste0("./Fits/AIEGB_",firsty,"_",secondy,"_wts_fds",code,".h5"))
     print(paste(ll,"of",nl, "completed"))
   }
 }
