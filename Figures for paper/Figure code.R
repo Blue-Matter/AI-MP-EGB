@@ -111,12 +111,12 @@ Iplot<-function(Idat,ylab,yr,yri,cols,tlab,tyr,type="p",dox=F,doy=F){
   inc<-(max(Idat,na.rm=T)-min(Idat,na.rm=T))/15
   matplot(ylab,t(Idat),type='l',col="white",lty=1,yaxs="i",ylim=range(Idat,na.rm=T)+c(-inc,inc),axes=F)
   ats<-seq(2000,3000,by=5)
-  atsy<-(-10:10)
+  atsy<-(-10:100)
   if(!dox)axis(1,ats,rep(NA,length(ats)))
   if(dox)axis(1,ats,ats)
   if(!doy)axis(2,atsy,rep(NA,length(atsy)))
-  if(doy)axis(2,atsy,atsy)
-  axis(2)
+  if(doy)axis(2,atsy,atsy,cex.axis=0.8)
+  #axis(2)
    grid()
   if(type=="p"){
     abline(v=c(2020.5,yr,tlab),lty=c(1,1,2),col=c("black","green","black"))
@@ -139,19 +139,20 @@ liney=0.25
 lineyY=2.2
 lcex=0.85
 
-jpeg("./Figures for paper/Figure 3.jpg",res=600, width=7,height=3,units="in")
+jpeg("./Figures for paper/Figure 3.jpg",res=600, width=7,height=8,units="in")
   
   par(mai=c(0.1,0.2,0.01,0.01), omi=c(0.1,0.3,0.3,0.01))
-  layout(mat,widths=c(1,1,1,0.35,1),heights=c(1.5,0.95,1,1,1,0.5,1,1,0.65,0.45))
+  layout(mat,widths=c(1,1,1,0.35,1),heights=c(1.5,0.75,1,1,1,0.35,1,1,0.5,0.35))
   
   Iplot(Idat=log(VB),ylab,dox=T,doy=T,yr=yrlabs[y],yri=yrind[y],cols=cols,tlab=tlab,tyr=tyr,type="l")
-  mtext("Simulated 'true' vulnerable biomass (output layer)  ",adj=1.4,cex=0.85,font=2,line=1)
+  mtext("Simulated 'true' vulnerable biomass (log)(output layer)     ",cex=0.8,font=2,line=1)
+  text(2025.4,11.82,"Projection years",cex=1)
   text(2031.5,11.8,"t",cex=1,font=2)
   j<-0
   for(i in 1:5){for(y in 1:4){
       j<-j+1
-      Iplot(Idat=log(Ind[,i,]),ylab,doy=(y==4),dox=(i==5),yr=yrlabs[y],yri=yrind[y],col=cols,tlab=tlab,tyr=tyr,type="p")
-      if(j==1)mtext("Survey index 1 (input layer)    ",cex=0.85,adj=0.8,font=2,line=1.5)
+      Iplot(Idat=log(Ind[,i,]),ylab,doy=(y==1|y==4),dox=(i==5|i==3),yr=yrlabs[y],yri=yrind[y],col=cols,tlab=tlab,tyr=tyr,type="p")
+      if(j==1)mtext("Survey index 1 (log)(input layer)   ",cex=0.8,font=2,line=1.5)
       if(i==1)mtext(timelab[y],line=liney,cex=lcex,col='green')
       if(y==1)mtext(Indlab[i],2,line=lineyY,cex=lcex)
   }}
@@ -163,8 +164,8 @@ jpeg("./Figures for paper/Figure 3.jpg",res=600, width=7,height=3,units="in")
   for(np in 1:4)nullplot()
   mtext("...",line=lineyY+0.1,cex=lcex,side=2)
   for(np in 1:6)nullplot()
-  mtext("Survey index 2 (input layer) ...",cex=0.85,adj=0.8,font=2,line=-3)
+  mtext("Survey index 2 (log)(input layer) ...",cex=0.8,font=2,line=-3)
   for(np in 1:5)nullplot()
-  mtext("Survey index 3 (input layer) ...",cex=0.85,adj=0.8,font=2,line=-2)
+  mtext("Survey index 3 (log)(input layer) ...",cex=0.8,font=2,line=-2)
 
 dev.off()
