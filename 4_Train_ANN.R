@@ -119,7 +119,7 @@ if(dotrain){
 layering <-cbind(c(20,18,16,20,18,14,16,18,14,16,18,8,12,18,16),
                   c(8,8,4,2,6,6,8,4,8,0,0,4,8,2,6))
 
-epochs=150; code="_150"
+epochs=60; code="_150"
 nl<-nrow(layering)
 mse<-cory<-rep(NA,nl)
 
@@ -127,7 +127,7 @@ mse<-cory<-rep(NA,nl)
 af<-"relu"
 logy<-T
 if(dotrain){
-  for(ll in 2:nl){ # ll<-17
+  for(ll in 1:nl){ # ll<-17
     
     firsty<-layering[ll,1]
     secondy<-layering[ll,2]
