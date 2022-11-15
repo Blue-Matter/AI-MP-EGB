@@ -13,8 +13,9 @@ apply(sddat,2,mean)
 # Table 2.  performance of alternative neural network designs
 
 dotrain=F; source("./4_Train_ANN.R")
-
+#source("./Source/make_train_data.r")
 source("./Source/build_model.r")
+
 Filenames<-list.files("./Fits")
 fullnames<-list.files("./Fits",full.names=T)
 Filenames<-Filenames[grepl('AIEGB',Filenames)]
@@ -26,7 +27,7 @@ nl<-length(Filenames)
 R2_test<-mae_test<-mae_train<-mae_val<-mae_val_rat<-rep(NA,nl)
 
 obs<-pred<-list()
-par(mfrow=c(4,5),mai=c(0.1,0.1,0.1,0.05))
+par(mfrow=c(7,7),mai=c(0.1,0.1,0.1,0.05))
 
 for(ll in 1:nl){
   
@@ -45,7 +46,7 @@ for(ll in 1:nl){
   
   legend('bottomright',legend=round(R2_test[ll],3),text.col='red',bty="n") 
   legend('topleft',legend=round( mae_test[ll],3),text.col='blue',bty="n") 
-  legend('top',legend=paste(firsty[ll],"-",secondy[ll]),text.col='black',bty="n") 
+  legend('top',legend=paste(firsty[ll],"-",secondy[ll]),text.col='orange',bty="n") 
   
   hist<-readRDS(histfiles[ll])
   nts<-length(hist$metrics$mean_absolute_error)
