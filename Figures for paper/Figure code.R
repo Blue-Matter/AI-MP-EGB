@@ -241,7 +241,7 @@ jpeg("./Figures for paper/Figure 4.jpg",res=600, width=7.5,height=8,units="in")
   par(mai=c(0.1,0.1,0.25,0.01))
   par(oma=c(2.6,2.6,0.01,2.2))
   
-  layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.4,1,1,1,1,1))
+  layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.3,1,1,1,1,1))
   
   j<-0
   ind<-29:43
