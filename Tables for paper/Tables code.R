@@ -110,10 +110,10 @@ for(ll in 1:nl){
   x<-test_df$label
   y<-test_predictions[ , 1]
   
-  if(logy){
-    x<-exp(test_df$label)
-    y<-exp(test_predictions[ , 1])
-  }
+  #if(logy){
+   # x<-exp(test_df$label)
+    #y<-exp(test_predictions[ , 1])
+  #}
   pred[[ll]]<-y
   obs[[ll]]<-x
   plot(x,y,xlab="VB obs",ylab="VB Pred"); lines(c(0,1E10),c(0,1E10),col='#ff000050',lwd=2)
@@ -126,10 +126,11 @@ for(ll in 1:nl){
   legend('top',legend=paste(first[ll],"-",second[ll]),text.col='black',bty="n") 
   
   hist<-readRDS(histfiles[ll])
-  nts<-length(hist$metrics$mean_absolute_error)
-  mae_train[ll]<-hist$metrics$mean_absolute_error[nts]
-  mae_val[ll]<-hist$metrics$val_mean_absolute_error[nts]
   ind<-nts-(9:0)
+  nts<-length(hist$metrics$mean_absolute_error)
+  mae_train[ll]<-mean(hist$metrics$mean_absolute_error[ind])
+  mae_val[ll]<-mean(hist$metrics$val_mean_absolute_error[ind])
+  
   mae_val_rat[ll]<-mean(hist$metrics$mean_absolute_error[ind]/hist$metrics$val_mean_absolute_error[ind])
   legend('bottom',legend=round(mae_val_rat[ll],3),text.col='green',bty="n") 
 

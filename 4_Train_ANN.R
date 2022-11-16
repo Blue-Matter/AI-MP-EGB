@@ -127,7 +127,8 @@ mse<-cory<-rep(NA,nl)
 af<-"relu"
 logy<-T
 if(dotrain){
-  for(ll in 1:nl){ # ll<-17
+  for(ll in c(14,8,12)){
+  #for(ll in 1:nl){ # ll<-17
     
     firsty<-layering[ll,1]
     secondy<-layering[ll,2]
