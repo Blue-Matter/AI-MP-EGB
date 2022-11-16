@@ -208,7 +208,7 @@ plothist<-function(hist,lab="",dox=F,doy=F,cols=c("#ff000090","#0000ff90"),ylim=
   if(doy)axis(2,ytick,ytick)
   if(!doy)axis(2,ytick,rep(NA,length(ytick)))
   mtext(lab,adj=1.5,line=0.1,cex=0.85)
-  legend('topright',paste("MAE =",rev(round(maes,3))),cex=0.8,text.col=c("blue","red"),bty='n')
+  legend('topright',paste("MAE =",rev(format(round(maes,3),nsmall=3))),cex=0.8,text.col=c("blue","red"),bty='n')
   
 }
 
@@ -219,7 +219,7 @@ plotcor<-function(x,y,dox=F,doy=F,lims=c(-0.5,4)){
   mae<-mean(abs(x-y))
   plot(x,y,col="white",axes=F,xlim=lims,ylim=lims)
   grid()
-  lines(c(-1E10,1E10),c(-1E10,1E10),col="red")
+  lines(c(-1E10,1E10),c(-1E10,1E10),col="darkgrey")
   points(x,y,col="#00ff0030",pch=19,cex=0.5)
   xtick<-ytick<-(-4:10)
   if(dox)axis(1,xtick,xtick)
@@ -227,43 +227,46 @@ plotcor<-function(x,y,dox=F,doy=F,lims=c(-0.5,4)){
   if(!dox)axis(1,xtick,rep(NA,length(xtick)))
   if(doy)axis(2,ytick,ytick)
   if(!doy)axis(2,ytick,rep(NA,length(ytick)))
-  legend('topleft',legend=paste0("MAE = ",round(mae,3)),bty='n',cex=0.8,text.col="darkgreen")
-  legend('bottomright',legend=paste0("R2 = ",round(R2,3)),bty='n',cex=0.8,text.col="darkgreen")
+  legend('topleft',legend=paste0("MAE = ",format(round(mae,3), nsmall = 3)),bty='n',cex=0.8,text.col="darkgreen")
+  legend('bottomright',legend=paste0("R2 = ",format(round(R2,3),nsmall=3)),bty='n',cex=0.8,text.col="darkgreen")
 }
 
 
 mat0<-matrix(1:30,ncol=6,byrow=T)
 mat<-rbind(31:38,cbind(mat0[,1:2],39:43,mat0[,3:4],44:48,mat0[,5:6]))
 
-par(mai=c(0.1,0.1,0.25,0.01))
-par(oma=c(2.6,2.6,0.01,2.2))
 
-layout(mat,widths=c(1,0.6,0.1,1,0.6,0.1,1,0.6),heights=c(0.5,1,1,1,1,1))
-
-j<-0
-ind<-29:43
-namy<-paste0("(",letters[1:15],") ",first[ind]," - ",second[ind])
-summ<-readRDS("Results/Fits/Summary.rda")
-if(!(all(summ$firsty==first)&all(summ$secondy==second)))print("!!! WARNING order mismatch !!!")
-for(ll in ind){
-  j<-j+1
-  hist<-readRDS(histfiles[ll])
-  plothist(hist,dox=(j>12),doy=(j%in%c(1,4,7,10,13)),lab=namy[j])
-  plotcor(x=summ$obs[[ll]],y=summ$pred[[ll]],dox=(j>12))
+jpeg("./Figures for paper/Figure 4.jpg",res=600, width=7.5,height=8,units="in")
   
-}
-nullplot<-function()plot(1,1,col='white',axes=F,xlab="",ylab="")
-for(i in 1:3){
-  nullplot()
-  legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
-  nullplot()
-  legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
-  if(i<3)nullplot()
-}
+  par(mai=c(0.1,0.1,0.25,0.01))
+  par(oma=c(2.6,2.6,0.01,2.2))
+  
+  layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.4,1,1,1,1,1))
+  
+  j<-0
+  ind<-29:43
+  namy<-paste0("(",letters[1:15],") ",first[ind]," - ",second[ind])
+  summ<-readRDS("Results/Fits/Summary.rda")
+  if(!(all(summ$firsty==first)&all(summ$secondy==second)))print("!!! WARNING order mismatch !!!")
+  for(ll in ind){
+    j<-j+1
+    hist<-readRDS(histfiles[ll])
+    plothist(hist,dox=(j>12),doy=(j%in%c(1,4,7,10,13)),lab=namy[j])
+    plotcor(x=summ$obs[[ll]],y=summ$pred[[ll]],dox=(j>12))
+    
+  }
+  nullplot<-function()plot(1,1,col='white',axes=F,xlab="",ylab="")
+  for(i in 1:6)nullplot()
+    nullplot()
+    legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
+    nullplot()
+    legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
+    
+  
+  
+  mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T,cex=0.9)
+  mtext("Predicted log(VB)",4,line=0.5,outer=T,cex=0.9,srt=180,col="dark green")
 
-mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T,cex=0.9)
-mtext("Predicted log(VB)",4,line=0.5,outer=T,cex=0.9,srt=180,col="dark green")
-
-
+dev.off()
 
 
