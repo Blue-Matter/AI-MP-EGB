@@ -169,3 +169,101 @@ jpeg("./Figures for paper/Figure 3.jpg",res=600, width=7,height=8,units="in")
   mtext("Survey index 3 (log)(input layer) ...",cex=0.8,font=2,line=-2)
 
 dev.off()
+
+
+# ---- Figure 4 plotting network convergence --------------
+
+
+#dotrain=F; source("./4_Train_ANN.R")
+
+#source("./Source/build_model.r")
+Filenames<-list.files("./Fits")
+fullnames<-list.files("./Fits",full.names=T)
+Filenames<-Filenames[grepl('AIEGB',Filenames)]
+first<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][2])
+second<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][3])
+histfiles<-paste0(getwd(),"/Fits/history_",first,"_",second,"_fds.rda")
+# cbind(Filenames, firsty,secondy,histfiles)
+nl<-length(Filenames)
+R2_test<-mae_test<-mae_train<-mae_val<-mae_val_rat<-rep(NA,nl)
+
+obs<-pred<-list()
+
+plothist<-function(hist,lab="",dox=F,doy=F,cols=c("#ff000090","#0000ff90"),ylim=c(0.19,0.25)){
+  
+  dat<-cbind(hist$metrics$mean_absolute_error,hist$metrics$val_mean_absolute_error)
+  ind<-nrow(dat)-(9:0)
+  maes<-apply(dat[ind,],2,mean)
+  ytick<-seq(0,1,by=0.01)
+  xtick<-seq(0,1000,by=10)
+  matplot(dat,type="l",lty=1,col="white",ylim=ylim,axes=F)
+  grid()
+  abline(v=nrow(dat)-9.5,col="darkgrey")
+  abline(h=0.2,col="grey")
+  matplot(dat,type="l",lty=1,col=cols,add=T)
+  matplot(dat,type="p",add=T,pch=19,cex=0.8,col=cols)
+  if(dox)axis(1,xtick,xtick)
+  if(dox)mtext("Epoch",1,line=2.3,cex=0.9)
+  if(!dox)axis(1,xtick,rep(NA,length(xtick)))
+  if(doy)axis(2,ytick,ytick)
+  if(!doy)axis(2,ytick,rep(NA,length(ytick)))
+  mtext(lab,adj=1.5,line=0.1,cex=0.85)
+  legend('topright',paste("MAE =",rev(round(maes,3))),cex=0.8,text.col=c("blue","red"),bty='n')
+  
+}
+
+plotcor<-function(x,y,dox=F,doy=F,lims=c(-0.5,4)){
+  #x<-seq(0,4,length.out=100)
+  #y<-x*rlnorm(100,0,0.2)
+  R2<-cor(x,y)^2
+  mae<-mean(abs(x-y))
+  plot(x,y,col="white",axes=F,xlim=lims,ylim=lims)
+  grid()
+  lines(c(-1E10,1E10),c(-1E10,1E10),col="red")
+  points(x,y,col="#00ff0030",pch=19,cex=0.5)
+  xtick<-ytick<-(-4:10)
+  if(dox)axis(1,xtick,xtick)
+  if(dox)mtext("Obs. log(VB)",1,line=2.3,cex=0.9,col="dark green")
+  if(!dox)axis(1,xtick,rep(NA,length(xtick)))
+  if(doy)axis(2,ytick,ytick)
+  if(!doy)axis(2,ytick,rep(NA,length(ytick)))
+  legend('topleft',legend=paste0("MAE = ",round(mae,3)),bty='n',cex=0.8,text.col="darkgreen")
+  legend('bottomright',legend=paste0("R2 = ",round(R2,3)),bty='n',cex=0.8,text.col="darkgreen")
+}
+
+
+mat0<-matrix(1:30,ncol=6,byrow=T)
+mat<-rbind(31:38,cbind(mat0[,1:2],39:43,mat0[,3:4],44:48,mat0[,5:6]))
+
+par(mai=c(0.1,0.1,0.25,0.01))
+par(oma=c(2.6,2.6,0.01,2.2))
+
+layout(mat,widths=c(1,0.6,0.1,1,0.6,0.1,1,0.6),heights=c(0.5,1,1,1,1,1))
+
+j<-0
+ind<-29:43
+namy<-paste0("(",letters[1:15],") ",first[ind]," - ",second[ind])
+summ<-readRDS("Results/Fits/Summary.rda")
+if(!(all(summ$firsty==first)&all(summ$secondy==second)))print("!!! WARNING order mismatch !!!")
+for(ll in ind){
+  j<-j+1
+  hist<-readRDS(histfiles[ll])
+  plothist(hist,dox=(j>12),doy=(j%in%c(1,4,7,10,13)),lab=namy[j])
+  plotcor(x=summ$obs[[ll]],y=summ$pred[[ll]],dox=(j>12))
+  
+}
+nullplot<-function()plot(1,1,col='white',axes=F,xlab="",ylab="")
+for(i in 1:3){
+  nullplot()
+  legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
+  nullplot()
+  legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
+  if(i<3)nullplot()
+}
+
+mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T,cex=0.9)
+mtext("Predicted log(VB)",4,line=0.5,outer=T,cex=0.9,srt=180,col="dark green")
+
+
+
+
