@@ -177,12 +177,12 @@ dev.off()
 #dotrain=F; source("./4_Train_ANN.R")
 
 #source("./Source/build_model.r")
-Filenames<-list.files("./Fits")
-fullnames<-list.files("./Fits",full.names=T)
+Filenames<-list.files("./Fits_150")
+fullnames<-list.files("./Fits_150",full.names=T)
 Filenames<-Filenames[grepl('AIEGB',Filenames)]
 first<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][2])
 second<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][3])
-histfiles<-paste0(getwd(),"/Fits/history_",first,"_",second,"_fds.rda")
+histfiles<-paste0(getwd(),"/Fits_150/history_",first,"_",second,"_fds_150.rda")
 # cbind(Filenames, firsty,secondy,histfiles)
 nl<-length(Filenames)
 R2_test<-mae_test<-mae_train<-mae_val<-mae_val_rat<-rep(NA,nl)
@@ -244,9 +244,10 @@ jpeg("./Figures for paper/Figure 4.jpg",res=600, width=7.5,height=8,units="in")
   layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.3,1,1,1,1,1))
   
   j<-0
-  ind<-29:43
+  
   namy<-paste0("(",letters[1:15],") ",first[ind]," - ",second[ind])
-  summ<-readRDS("Results/Fits/Summary.rda")
+  summ<-readRDS("Results/Fits/Summary_150.rda")
+  ind<-1:length(summ$firsty)
   if(!(all(summ$firsty==first)&all(summ$secondy==second)))print("!!! WARNING order mismatch !!!")
   for(ll in ind){
     j<-j+1
@@ -257,11 +258,11 @@ jpeg("./Figures for paper/Figure 4.jpg",res=600, width=7.5,height=8,units="in")
   }
   nullplot<-function()plot(1,1,col='white',axes=F,xlab="",ylab="")
   for(i in 1:6)nullplot()
-    nullplot()
-    legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
-    nullplot()
-    legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
-    
+  nullplot()
+  legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
+  nullplot()
+  legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
+  
   
   
   mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T,cex=0.9)
