@@ -1,5 +1,5 @@
 
-trainfunc<-function(layering,savdir="./Fits",epochs=30,code=""){
+trainfunc<-function(layering,savdir="./Fits",epochs=30,code="",wtfile=NULL){
   
   nl<-nrow(layering)
   mse<-cory<-rep(NA,nl)
@@ -10,6 +10,7 @@ trainfunc<-function(layering,savdir="./Fits",epochs=30,code=""){
     firsty<-layering[ll,1]
     secondy<-layering[ll,2]
     AIEGB <- build_model(firsty,secondy)
+    if(!is.null(wtfile))AIEGB %>% load_model_weights_hdf5(filepath = wtfile)
     
     history <- AIEGB %>% fit(
       x = train_df %>% dplyr::select(-label),
