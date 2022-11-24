@@ -177,19 +177,21 @@ dev.off()
 #dotrain=F; source("./4_Train_ANN.R")
 
 #source("./Source/build_model.r")
-Filenames<-list.files("./Fits_150")
-fullnames<-list.files("./Fits_150",full.names=T)
+Filenames<-list.files("./Fits_100")
+fullnames<-list.files("./Fits_100",full.names=T)
 Filenames<-Filenames[grepl('AIEGB',Filenames)]
 first<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][2])
 second<-sapply(Filenames,function(x)strsplit(x,"_")[[1]][3])
-histfiles<-paste0(getwd(),"/Fits_150/history_",first,"_",second,"_fds_150.rda")
+histfiles<-paste0(getwd(),"/Fits_100/history_",first,"_",second,"_fds.rda")
+
+
 # cbind(Filenames, firsty,secondy,histfiles)
 nl<-length(Filenames)
 R2_test<-mae_test<-mae_train<-mae_val<-mae_val_rat<-rep(NA,nl)
 
 obs<-pred<-list()
 
-plothist<-function(hist,lab="",dox=F,doy=F,cols=c("#ff000090","#0000ff90"),ylim=c(0.19,0.25)){
+plothist<-function(hist,lab="",dox=F,doy=F,cols=c("#ff000090","#0000ff90"),ylim=c(0.19,0.24)){
   
   dat<-cbind(hist$metrics$mean_absolute_error,hist$metrics$val_mean_absolute_error)
   ind<-nrow(dat)-(9:0)
@@ -232,41 +234,37 @@ plotcor<-function(x,y,dox=F,doy=F,lims=c(-0.5,4)){
 }
 
 
-mat0<-matrix(1:30,ncol=6,byrow=T)
-mat<-rbind(31:38,cbind(mat0[,1:2],39:43,mat0[,3:4],44:48,mat0[,5:6]))
+mat0<-matrix(1:20,ncol=4,byrow=T)
+mat<-rbind(21:25,cbind(mat0[,1:2],26:30,mat0[,3:4]))
 
 
 jpeg("./Figures for paper/Figure 4.jpg",res=600, width=7.5,height=8,units="in")
-  
   par(mai=c(0.1,0.1,0.25,0.01))
   par(oma=c(2.6,2.6,0.01,2.2))
-  
-  layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.3,1,1,1,1,1))
-  
+  layout(mat,widths=c(1,0.66,0.1,1,0.66,0.1,1,0.66),heights=c(0.4,1,1,1,1,1))
   j<-0
+  summ<-readRDS("Results/Fits/Summary_100.rda")
+  keep<-!(first%in%c(20,18,16,6))
+  ind<-(1:length(summ$firsty))[keep]
+  namy<-paste0("(",letters[1:10],") ",first[ind]," - ",second[ind])
   
-  namy<-paste0("(",letters[1:15],") ",first[ind]," - ",second[ind])
-  summ<-readRDS("Results/Fits/Summary_150.rda")
-  ind<-1:length(summ$firsty)
   if(!(all(summ$firsty==first)&all(summ$secondy==second)))print("!!! WARNING order mismatch !!!")
   for(ll in ind){
     j<-j+1
     hist<-readRDS(histfiles[ll])
-    plothist(hist,dox=(j>12),doy=(j%in%c(1,4,7,10,13)),lab=namy[j])
-    plotcor(x=summ$obs[[ll]],y=summ$pred[[ll]],dox=(j>12))
-    
+    plothist(hist,dox=(j>8),doy=(j%in%c(1,3,5,7,9)),lab=namy[j])
+    plotcor(x=summ$obs[[ll]],y=summ$pred[[ll]],dox=(j>8))
   }
   nullplot<-function()plot(1,1,col='white',axes=F,xlab="",ylab="")
-  for(i in 1:6)nullplot()
-  nullplot()
-  legend('left',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
-  nullplot()
-  legend('left',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
-  
-  
-  
-  mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T,cex=0.9)
-  mtext("Predicted log(VB)",4,line=0.5,outer=T,cex=0.9,srt=180,col="dark green")
+  for(i in 1:2){
+    nullplot()
+    legend('center',legend=c(" Training","Validation"),text.col=c("red","blue"),bty='n',cex=0.9,text.font=2)
+    nullplot()
+    legend('center',legend=c("Testing"),text.col="dark green",bty='n',cex=0.9,text.font=2)
+    if(i==1)nullplot()
+  }
+  mtext("Mean Absolute Error (MAE)",2,line=1.5,outer=T)
+  mtext("Predicted log(VB)",4,line=0.5,outer=T,srt=180,col="dark green")
 
 dev.off()
 
