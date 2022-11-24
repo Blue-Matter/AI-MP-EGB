@@ -39,9 +39,10 @@ source("./Source/MPs.R")
 
 # --- get OM and run MSE -----------------------------------------
 
-OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=1:2)
+OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=13:36)
 OM@seed<-1
 Hist2<-runMSE(OM,Hist=T,extended=T)
+
 MSEtest=Project(Hist2,MPs=c(paste0("AI3_",c(3,5,9)),
                             paste0("AI2_",c(3,5,9)),
                             paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
@@ -50,9 +51,19 @@ TplotAI(MSEtest)
 MSEtest2=Project(Hist2,MPs="AI1_5")#MSEtest=Project(Hist2,MPs="AI_5")
 TplotAI(MSEtest)
 
-MSEtest3=Project(Hist2,MPs=c(paste0("PI_",c(3,5,9)),paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
+MSEtest3=Project(Hist2,MPs=c(paste0("PBS_",c(5,10,20)),paste0("PI_",c(3,5,9)),paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
 TplotAI(MSEtest3)
 Pplot(MSEtest3)
+
+OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=13:36)
+OM@seed<-1
+Hist3<-runMSE(OM,Hist=T,extended=T)
+MSEtest3b=Project(Hist3,MPs=c(paste0("PBS_",c(5,10,20)),paste0("PI_",c(3,5,9)),paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
+
+MSEtest3all<-joinMSE(list(MSEtest3,MSEtest3b))
+saveRDS("C:/mse)
+TplotAI(MSEtest3all)
+
 
 
 Data<-readRDS("C:/temp/Data.rda")

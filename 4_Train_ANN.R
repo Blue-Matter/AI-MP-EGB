@@ -91,7 +91,7 @@ trainfunc(layering,savdir="./Fits_100",epochs=100)
 # --- 500 epochs -----------------------------------------------------------------------
 
 layering=matrix(c(8,4),nrow=1)
-trainfunc(layering,savdir="./Fits_500",epochs=500,wtfile="./Fits_100/AIEGB_8_8_wts_fds.h5")
+trainfunc(layering,savdir="./Fits_500",epochs=400,wtfile="./Fits_100/AIEGB_8_4_wts_fds.h5")
 
 
 
