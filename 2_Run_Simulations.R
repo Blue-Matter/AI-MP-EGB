@@ -33,10 +33,10 @@ FMP<-function(x, Data, reps = 100, plot = FALSE, Flev=0.6, CV=0.1) {
   Rec
 }
 
-F_hi<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.6)
+F_hi<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.8)
 F_med<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.4)
 F_low<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.2)
-F_hi_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.6, CV=0.3)
+F_hi_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.8, CV=0.3)
 F_med_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.4, CV=0.3)
 F_low_v<-function(x,Data,reps)FMP(x=x,Data=Data,reps=reps,Flev=0.2, CV=0.3)
 
@@ -53,7 +53,7 @@ MPs<-1:length(simMPs)
 inds<-expand.grid(1:ni,MPs)
 
 if(error){ # if for some reason the whole set did not fully complete, this filters inds according to the files calculated
-  files<-list.files("C:/temp/MSEs4/")
+  files<-list.files("C:/temp/MSEs5/")
   nis<-sapply(files,function(x)strsplit(x,split="_")[[1]][2])
   MPss<-sapply(files,function(x)substr(strsplit(x,split="_")[[1]][3],1,1))
   fcode<-paste(nis,MPss,sep="_")
@@ -62,7 +62,14 @@ if(error){ # if for some reason the whole set did not fully complete, this filte
   inds<-inds[keep,]
 }
 
-parrun<-function(x,inds,obj,simMPs, Base){
+makeObsErr = function(Hist, iCV=0.2){
+  iArr =Hist@SampPars$Obs$AddIerr
+  dims=dim(iArr)
+  Hist@SampPars$Obs$AddIerr = array(trlnorm(prod(dims),1,iCV),dims)
+  Hist 
+}
+
+parrun<-function(x,inds,obj,simMPs, Base, CV = 0.15){
     i<-inds[x,1]
     MP<-inds[x,2]
     seed<-(i*100)+i*MP
@@ -70,13 +77,11 @@ parrun<-function(x,inds,obj,simMPs, Base){
     OM <- MSEtool:::WHAM2OM(obj, report=F, nsim=200, LowerTri = 1,interval=1) # report = T produces a diagnostic showing WHAM vs OM matching of numbers at age
     OM@cpars$Data<-Base@cpars$Data
     OM@cpars$AddIbeta <-Base@cpars$AddIbeta
-
-    print(OM@cpars$Perr_y[1,1:10])
     OM@seed<-seed
     Hist<-runMSE(OM,Hist=T,extended=T)
-    #for(jj in 1:27)Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]<-Hist@SampPars$Obs$AddInd_Stat[[jj]][,2]/2 # test of info in reduced CV
+    Hist = makeObsErr(Hist,0.1)
     MSE<-Project(Hist,MPs=simMPs[MP],extended=T)
-    saveRDS(MSE,paste0("C:/temp/MSEs4/Run_",i,"_",MP,".rda"))
+    saveRDS(MSE,paste0("C:/temp/MSEs_CV10/Run_",i,"_",MP,".rda"))
     #print(paste("i =",i,"  MP =",MP))
 }
 
@@ -86,5 +91,8 @@ sfExport(list=list("FMP","F_hi","F_med","F_low","F_hi_v","F_med_v","F_low_v"))
 
 iss<-(1:nrow(inds))#[inds[,1]>60]
 sfSapply(iss,parrun,inds=inds,obj=obj,simMPs=simMPs,Base=Base)
+
+# end of script
+
 
 

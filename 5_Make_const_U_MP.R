@@ -35,69 +35,21 @@ source("./Source/MSEplots.R")
 
 # --- get MPs ---------------------------------------------------
 
+maketestdata=T
 source("./Source/MPs.R")
 
 # --- get OM and run MSE -----------------------------------------
 
-OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=13:36)
+OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=1:64)
 OM@seed<-1
 Hist2<-runMSE(OM,Hist=T,extended=T)
 
-MSEtest=Project(Hist2,MPs=c(paste0("AI3_",c(3,5,9)),
+MSEtest=Project(Hist2,MPs=c(paste0("PBS_",c(5,10,20)),
+                            paste0("PI_",c(3,5,9)),
+                            paste0("AI1_",c(3,5,9)),
                             paste0("AI2_",c(3,5,9)),
-                            paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
+                            paste0("AI3_",c(3,5,9))))
+
+saveRDS(MSEtest,"C:/temp/MSEtest.rda")
 TplotAI(MSEtest)
-
-MSEtest2=Project(Hist2,MPs="AI1_5")#MSEtest=Project(Hist2,MPs="AI_5")
-TplotAI(MSEtest)
-
-MSEtest3=Project(Hist2,MPs=c(paste0("PBS_",c(5,10,20)),paste0("PI_",c(3,5,9)),paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
-TplotAI(MSEtest3)
-Pplot(MSEtest3)
-
-OM<-SubCpars(readRDS("./Operating_Models/Base_dat.rda"),sims=13:36)
-OM@seed<-1
-Hist3<-runMSE(OM,Hist=T,extended=T)
-MSEtest3b=Project(Hist3,MPs=c(paste0("PBS_",c(5,10,20)),paste0("PI_",c(3,5,9)),paste0("AI1_",c(3,5,9))))#MSEtest=Project(Hist2,MPs="AI_5")
-
-MSEtest3all<-joinMSE(list(MSEtest3,MSEtest3b))
-saveRDS("C:/mse)
-TplotAI(MSEtest3all)
-
-
-
-Data<-readRDS("C:/temp/Data.rda")
-
-MSEtest@Catch
-
-
-
-
-
-## ---------- test of MP data borrowing
-
-library(openMSE)
-testMP<-function (x, Data, reps = 100, plot = FALSE){
-  nyears <- length(Data@Misc$FleetPars$Find[x, ]) # No. historical years
-  curyr<-ncol(Data@Cat)                           # get current year
-  ny<-curyr-nyears                                # calculate projection year
-  Rec <- new("Rec")                               # New MP recommendation object
-  Rec@Effort <- 1                                 # keep constant recent effort
-  if(ny==1){                                      # if first year of projection, start counter
-    Rec@Misc[[1]]<-x
-  } else {                                        # else add 1 to make a vector 
-    pastinfo<-unlist(Data@Misc[[x]])
-    Rec@Misc[[1]]=c(pastinfo,max(pastinfo)+x)
-    print(Rec@Misc[[1]])
-  }
-  Rec
-}
-
-class(testMP)<-'MP'
-OM<-SubCpars(testOM,sims=1:2)
-OM@interval<-1
-MSEtest=runMSE(OM,MPs="testMP")
-Misc<-MSEtest@PPD[[1]]@Misc
-for(sim in 1:2)print(Misc[[sim]][[1]])
-
 

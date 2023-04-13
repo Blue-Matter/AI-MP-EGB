@@ -1,13 +1,13 @@
 # Make training data
 
-TD<-readRDS("C:/temp/Sim_Data/simdataL4.rda")
+TD<-readRDS("C:/temp/Sim_Data/simdataL5.rda")
 keep<-apply(TD,1,function(x)!is.na(sum(x)))&apply(TD,1,function(x)!any(x==-Inf))
 sum(keep)/length(keep)
 TD<-TD[keep,]
-high<-array(rep(apply(TD,2,quantile,p=0.995),each=nrow(TD)),dim(TD))
-keep2<-apply(TD<high,1,sum)==ncol(TD)
-sum(keep2)/length(keep2)
-TD<-TD[keep2,]
+#high<-array(rep(apply(TD,2,quantile,p=0.995),each=nrow(TD)),dim(TD))
+#keep2<-apply(TD<high,1,sum)==ncol(TD)
+#sum(keep2)/length(keep2)
+#TD<-TD[keep2,]
 
 keep3<-TD[,1]<40000 & TD[,1]>100
 sum(keep3)/length(keep3)
@@ -20,9 +20,12 @@ TD<-log(TD)
 hist(TD[,1])
 
 if(!is.null(TDsmall))if(TDsmall)TD<-TD[1:100,]
+if(!is.null(TD50k))if(TD50k)TD<-TD[1:50000,]
 
 nr<-nrow(TD)
+print(paste("Ndata =",nr))
 nc<-ncol(TD)
+set.seed(1)
 ind<-(1:nr)%in%sample(1:nr,floor(nr*0.05),replace=FALSE)
 
 train_data<-TD[!ind,2:nc]

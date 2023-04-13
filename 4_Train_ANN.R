@@ -56,6 +56,7 @@ library(progress)
 
 # --- Load and format training data -------------------------------------
 TDsmall=F
+TD50k=T
 source("./Source/make_train_data.r")
 
 # --- AI Model builder -------------------------------------
@@ -73,7 +74,7 @@ layering0 <-expand.grid(c(2,4,6,8,10,12,14,16,18,20),c(0,2,4,6,8))
 # layering0 <-cbind(c(6,6,6,4,4,2),c(4,2,0,2,0,0))
 layering<-layering0[layering0[,2]<=layering0[,1],]
 
-trainfunc(layering,savdir="./Fits",epochs=30)
+trainfunc(layering[35:50,],savdir="./Fits2",epochs=30)
 
 
 # ---- 100 epochs -----------------------------------------------------------------------

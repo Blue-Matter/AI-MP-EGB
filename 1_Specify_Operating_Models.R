@@ -15,7 +15,7 @@ setwd("C:/GitHub/AI-MP-EGB")
 
 # A --- Load Operating Model derivied from Base EGB Assessment ----------------------------------------------
 
-Base<-readRDS("./Operating_Models/Base.rda")
+Base<-readRDS("./Operating_Models/Base_dat.rda")
 proyears<-Base@nyears+1:Base@proyears                          # index for imputing values in future years
 rec_proyears<-dim(Base@cpars$Perr_y)[2]-((Base@proyears-1):0)  # index for imputing values for rec devs in future years
 
@@ -59,48 +59,38 @@ for(i in 1:3){
   }
 }
 
-for(i in 1:3){
-  j<-j+1
-  for(a in 1:nai){
-    age<-ages[a]
-    allind[j,]<-allind[j,]+obj$input$data$index_paa[i,,age]*obj$input$data$agg_indices[,i]*obj$input$data$waa[i+1,,age] # add these up into the aggregate index
-  }
-}
 
-Ilist<-as.list(1:24)
-alist<-as.list(rep(2:9,3))
+#Ilist<-as.list(1:24)
+#alist<-as.list(rep(2:9,3))
+#Ilist <- list(3:4, 5:6, 8:9, 10:12, 13:14, 15:16, 18:20, 21:22, 23:24)
+#alist <- list(4:5, 6:7, 8:9, 3:5,   6:7,   8:9,   3:5,   6:7,   8:9)
 
-#Ilist<-list(2:4,5:6,8:9,10:12,13:14,15:16,18:20,21:22,23:24)
-#alist<-list(3:5,6:7,8:9,3:5,6:7,8:9,3:5,6:7,8:9)
-
-#Ilist<-list(2:4,5:6,13:14,21:22,23:24)
-#alist<-list(3:5,6:7,6:7,6:7,8:9)
+Ilist <- list(1:3,4:6,7:8, 9:11,12:14,15:16, 17:19,20:22,23:24, 2:8,10:16,18:24)
+alist <- list(2:4,5:7,8:9, 2:4, 5:7,  8:9,   2:4,  5:7,  8:9,   3:9,3:9,  3:9)
 
 nis<-length(Ilist)
-#newind<-array(NA,c(nis,dim(allind)[2]))
-selexV<-array(0,c(Base@nsim,nis+3,10))
+newind<-array(NA,c(nis,dim(allind)[2]))
+selexV<-array(0,c(Base@nsim,nis,10))
 
 for(i in 1:nis){
   selexV[,i,alist[[i]]+1]<-1
-  #newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
+  newind[i,]<-apply(allind[Ilist[[i]],,drop=F],2,sum)
 }
 
-for(i in (nis+(1:3)))selexV[,i,3:10]<-1
-
-dat@AddInd <- array(rep(allind,each=Base@nsim),c(Base@nsim,dim(allind)))
+dat@AddInd <- array(rep(newind,each=Base@nsim),c(Base@nsim,dim(newind)))
 dat@AddInd[dat@AddInd==0]<-NA # set zero values to NA
 dat@AddInd[,,1:(Base@nyears-10)]<-NA # trim old values
 
 # reported CVs for data object (not used in simulation)
 
-dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(allind))) # this is the assumed CV reported to MPs when simulated data are supplied
+dat@CV_AddInd <- array(0.1,c(Base@nsim,dim(newind))) # this is the assumed CV reported to MPs when simulated data are supplied
 
 # Vulnerability at age
 
 dat@AddIndV <- selexV
 
 # Type
-dat@AddIunits<-rep(1,nrow(allind))  # 0 Numbers index (1 is biomass)
+dat@AddIunits<-rep(1,nrow(allind))  # 0 Numbers index, 1 is biomass
 dat@AddIndType<-rep(3,dim(allind)[1]) # Vulnerable stock (1 is total stock, 2 is spawning stock)
 
 Base@cpars$Data <- dat # append data to operating model
@@ -152,8 +142,8 @@ saveRDS(Sel_Yng,"./Operating_Models/Sel_Yng.rda")
 
 OMtest<-SubCpars(Base,sims=1:96)
 test<-runMSE(OMtest,MPs="FMSYref",extended=T)
-par(mfrow=c(6,4),mai=c(0.2,0.2,0.1,0.1))
-for(i in 1:24)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
+par(mfrow=c(4,3),mai=c(0.2,0.2,0.1,0.1))
+for(i in 1:12)matplot(t(test@PPD[[1]]@AddInd[,i,]),type="l",ylab="",xlab="")
 
 Stat<-test@Hist@SampPars$Obs$AddInd_Stat
 ni<-length(test@Hist@SampPars$Obs$AddInd_Stat)

@@ -10,7 +10,7 @@ setwd("C:/GitHub/AI-MP-EGB")
 
 # 3. Process Simulation Data
 
-MSEfiles<-paste0("C:/temp/MSEs4/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
+MSEfiles<-paste0("C:/temp/MSEs5/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
 # MSEfiles<-list.files("C:/temp/MSEs",full.names=T)
 nMSE<-length(MSEfiles)
 MSE1<-readRDS(MSEfiles[1])
@@ -30,8 +30,25 @@ procdat<-function(x,MSEfiles){
   #keep<-aall%in%as
   keep<-rep(T,dim(MSE@PPD[[1]]@AddInd)[2])
 
+  smooth<-function(xx,plot=F,enp.mult=0.35,plotname=""){
+    tofill<-!is.na(xx)
+    xx[xx==0]<-1E3
+    predout<-rep(NA,length(xx))
+    dat<-data.frame(x=1:length(xx),y=log(xx))
+    enp.target<-sum(tofill)*enp.mult
+    out<-loess(y~x,dat=dat,enp.target=enp.target)
+    predout[tofill]<-exp(predict(out))
+    if(plot){
+      plot(xx,type="p",xlab="x",ylab="y",main=plotname)
+      lines(predout,col="#ff000090",lwd=2)
+      abline(h=0,lty=2,col="grey")
+    }
+    predout
+  }
+  
   getind<-function(j,MSE,Years2){
     Ind<-MSE@PPD[[1]]@AddInd[j,keep,]
+    Inds<-t(apply(Ind,1,smooth))
     yind<-Years2[j]-9:1 # the nine previous years of observations
     as.vector(t(Ind[,yind]))
   }
@@ -50,13 +67,13 @@ out<-sfLapply(1:nMSE,procdat,MSEfiles=MSEfiles)
 #out<-sapply(1:nMSE,procdat,MSEfiles=MSEfiles)
 simdat<-as.data.frame(abind(out,along=1))
 names(simdat)<-c("VB",paste0("IV",1:(ncol(simdat)-1)))
-saveRDS(simdat,"./Sim_Data/simdataL4.rda")
+saveRDS(simdat,"./Sim_Data/simdataL5.rda")
 
 
 
 # Index statistics (files are on the desktop)
 
-MSEfiles<-paste0("C:/temp/MSEs2/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
+MSEfiles<-paste0("C:/temp/MSEs5/Run_",rep(1:180,each=6),"_",rep(1:6,180),".rda")
 
 getstats<-function(x,MSEfiles,sd=T){
   MSE<-readRDS(MSEfiles[x])
